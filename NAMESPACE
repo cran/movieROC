@@ -1,0 +1,74 @@
+exportPattern("^[[:alpha:]]+")
+
+import(rms, animation, ks)
+
+importFrom("grDevices", "adjustcolor", "col2rgb", "dev.new", "rgb")
+importFrom("graphics", ".filled.contour", "abline", "arrows", "axis",
+            "boxplot", "contour", "hist", "layout", "legend", "lines",
+            "par", "points", "polygon", "segments", "text")
+importFrom("stats", "approx", "approxfun", "as.formula", "binomial",
+           "complete.cases", "density", "dnorm", "ecdf", "glm", 
+           "integrate", "na.omit", "pnorm", "prcomp", "predict", 
+           "qnorm", "quantile", "uniroot", "sd", "step")
+importFrom("utils", "capture.output", "flush.console", "head",
+            "setTxtProgressBar", "tail", "txtProgressBar")
+importFrom("zoo", "na.locf")
+           
+importFrom("intrval", "%[]%")
+importFrom("gtools", "combinations")
+importFrom("e1071", "allShortestPaths", "extractPath")
+#importFrom("maxTPR", "maxTPR")
+
+export(gROC)
+S3method("gROC", "default")
+
+export(gROC_param)
+#S3method("gROC", "param")
+
+export(hROC)
+S3method("hROC", "default")
+
+export(biROC)
+S3method("biROC", "default")
+
+export(multiROC)
+S3method("multiROC", "default")
+
+export(movieROC)
+S3method("movieROC", "groc")
+S3method("movieROC", "biroc")
+S3method("movieROC", "multiroc")
+
+
+S3method("plot", "groc")
+S3method("plot", "biroc")
+S3method("plot", "multiroc")
+S3method("plot", "hroc")
+
+S3method("plot", "buildROC")
+S3method("plot.buildROC", "groc")
+S3method("plot.buildROC", "biroc")
+S3method("plot.buildROC", "multiroc")
+
+S3method("plot", "regions")
+S3method("plot.regions", "groc")
+S3method("plot.regions", "hroc")
+
+S3method("plot", "funregions")
+S3method("plot.funregions", "hroc")
+
+
+
+S3method("predict", "groc")
+S3method("predict", "hroc")
+
+S3method("print", "groc")
+S3method("print", "hroc")
+S3method("print", "biroc")
+S3method("print", "multiroc")
+
+export(plot_densityROC)
+export(plot_densities)
+export(movieROC2_densities)
+
+#export(maxTPR_pkg)
