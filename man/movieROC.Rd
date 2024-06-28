@@ -1,7 +1,6 @@
 \name{movieROC}
 \alias{movieROC}
 \alias{movieROC.groc}
-\alias{movieROC.biroc}
 \alias{movieROC.multiroc}
 
 \title{
@@ -11,13 +10,13 @@
   Save a video as a GIF illustrating the construction of the ROC curve. Particularly, for each
 element in vector \code{fpr} (optional input parameter), the function executed is
 
-- for \sQuote{groc} and \sQuote{biroc} objects:
+- for \sQuote{groc} objects:
 
-  \code{plot.buildROC(obj, FPR = fpr[i], build.process = TRUE,...)};
+  \code{plot_buildROC(obj, FPR = fpr[i], build.process = TRUE,...)};
 
 - for \sQuote{multiroc} objects:
 
-  \code{plot.buildROC(obj, FPR = fpr[i], build.process = TRUE, display.method, displayOV,...)}
+  \code{plot_buildROC(obj, FPR = fpr[i], build.process = TRUE, display.method, displayOV,...)}
 }
 \usage{
 movieROC(x, ...)
@@ -29,13 +28,6 @@ movieROC(x, ...)
   xlim = NULL, ylim = NULL, cex.point = 1.5, lwd.curve = 2, mar = NULL,
   lim.density = 0.01, col.controlscases = c("#485C99", "#8F3D52"),
   col.curve = "black", col.threshold = "#FCBA04", verbose = FALSE, ...)
-\S3method{movieROC}{biroc}(x, fpr = NULL, border = TRUE, completeROC = FALSE,
-  videobar = TRUE, file = "animation1.gif", save = TRUE, legends = FALSE,
-  tpause = 1, interval = 0.2, ani.width, ani.height, xlab = "X1", ylab = "X2",
-  cex = 0.8, cex.lab = 1.5, cex.axis = 1.5, cex.main = 2,
-  alpha.points = 1, alpha.contour = 0.25, lwd.curve = 2, lty.curve = 1,
-  lf = NULL, col.controlscases = c('#485C99','#8F3D52'),
-  col.curve = 'black', col.threshold = '#FCBA04', verbose = FALSE, ...)
 \S3method{movieROC}{multiroc}(x, fpr = NULL, display.method = c("PCA", "OV"),
   displayOV = c(1,2), border = TRUE, completeROC = FALSE, videobar = TRUE,
   file = "animation1.gif", save = TRUE, legends = FALSE, tpause = 1,
@@ -49,11 +41,11 @@ movieROC(x, ...)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
-  An ROC curve object from the \pkg{movieROC} package. Possible classes are: \sQuote{groc} (output of \code{gROC} function), \sQuote{biroc} (output of \code{biROC} function), and \sQuote{multiroc} (output of \code{multiROC} function).}
+  An ROC curve object from the \pkg{movieROC} package. Possible classes are: \sQuote{groc} (output of \code{\link{gROC}()} function) and \sQuote{multiroc} (output of \code{\link{multiROC}()} function).}
   \item{fpr}{
   A vector of false-positive rates for which the building process of the ROC curve is displayed. Default: if length of \code{x$t} is lower than 150, such vector is taken as \code{fpr}; otherwise, an equally-space vector of length 100 covering the range of the marker is considered.}
   \item{h}{
-  A vector of length 2 with the bandwidth used to compute kernel density estimation for controls and cases, respectively. See \code{adjust} parameter in \code{density} function from \pkg{stats} package. Default: \code{h = c(1,1)}.}
+  A vector of length 2 with the bandwidth used to compute kernel density estimation for controls and cases, respectively. See \code{adjust} parameter in \code{density()} function from \pkg{stats} package. Default: \code{h = c(1,1)}.}
   \item{histogram}{
   If TRUE, histograms are displayed on the left instead of kernel density estimates. Default: FALSE. Only available for a \sQuote{groc} object.}
   \item{breaks}{
@@ -113,10 +105,13 @@ movieROC(x, ...)
   \item{displayOV}{
   If \code{display.method = "OV"}, the two components of the marker used to project the marker values on the left plot. Default: \code{c(1,2)} (two first components). Only available for object of class \sQuote{multiroc}.}
   \item{\dots}{
-  Other parameters to be passed to the \code{saveGIF} function in \CRANpkg{animation} package.}
+  Other parameters to be passed to the \code{saveGIF()} function in \CRANpkg{animation} package.}
 }
 \value{
 A video with the building procedure of the ROC curve estimate with the selected graphical parameters
+}
+\section{Dependencies}{
+If \code{save = TRUE} (by default), the \code{saveGIF()} function in the \CRANpkg{animation} package is used.
 }
 \examples{
 data(HCC)
@@ -124,8 +119,7 @@ data(HCC)
 # Standard ROC curve for gene 20202438
 roc_cg20202438 <- gROC(X = HCC$cg20202438, D = HCC$tumor, side = "right")
 \donttest{
-### Do not change the \code{save} parameter to save the video in a GIF
-### with the name "video_cg20202438":
+### The video will be saved as a GIF with the name "video_cg20202438"
 movieROC(roc_cg20202438, file = "video_cg20202438.gif", save = FALSE)}
 
 # Multivariate ROC curve for genes 0202438, 18384097, and 03515901
@@ -133,13 +127,11 @@ multiroc_PT <- multiROC(X = cbind(HCC$cg20202438, HCC$cg18384097, HCC$cg03515901
     D = HCC$tumor, method = "fixedLinear", methodLinear = "PepeThompson")
 \donttest{
 # Two first components from PCA:
-### Do not change the \code{save} parameter to save the video in a GIF
-### with the name "video_multiroc_pca":
+### The video will be saved as a GIF with the name "video_multiroc_pca"
 movieROC(multiroc_PT, file = "video_multiroc_pca.gif", save = FALSE)
 }
 \donttest{
-### Do not change the \code{save} parameter to save the video in a GIF
-### with the name "video_multiroc_orig":
+### The video will be saved as a GIF with the name "video_multiroc_orig"
 movieROC(multiroc_PT, display.method = "OV", displayOV = c(1,3),
     file = "video_multiroc_orig.gif", cex = 1.2, xlab = "Gene 20202438",
     ylab = "Gene 03515901", lwd.curve = 4, save = FALSE)

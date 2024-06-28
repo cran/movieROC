@@ -1,8 +1,8 @@
-plot.funregions <- function(x, ...) {
-  UseMethod("plot.funregions")
+plot_funregions <- function(x, ...) {
+  UseMethod("plot_funregions")
 }
 
-plot.funregions.hroc <- function(x, FPR = 0.15, FPR2 = NULL, plot.subsets = TRUE, new.window = FALSE, main = NULL, ylim = NULL, ...){
+plot_funregions.hroc <- function(x, FPR = 0.15, FPR2 = NULL, plot.subsets = TRUE, new.window = FALSE, main = NULL, ylim = NULL, ...){
 
   obj <- x
   X <- obj$X; Y <- obj$Y; Sp <- obj$Sp; Se <- obj$Se; type <- obj$type
@@ -20,7 +20,9 @@ plot.funregions.hroc <- function(x, FPR = 0.15, FPR2 = NULL, plot.subsets = TRUE
   if(new.window) dev.new(width = 6, height = 5)
 
   plot(X[indexX], Y[indexX], type = 'l', xlab = '', ylab = '', yaxt = 'n', frame = FALSE,
-       main = ifelse(is.null(main), paste("Model:", type, ifelse(type=='lrm', obj$formula, "")), main),
+       main = ifelse(is.null(main), paste("Model:", type, 
+                                          ifelse(type=='lrm', obj$formula, 
+                                                 ifelse(type=='kernel', paste0("(bandwidth = ",obj$kernel.h,")"), ""))), main),
        ylim = ylim, lwd = 2)
   if(plot.subsets) axis(1, at = Xcol, tcl = 0.6, labels = F, col = 'blue')
 
@@ -68,4 +70,37 @@ plot.funregions.hroc <- function(x, FPR = 0.15, FPR2 = NULL, plot.subsets = TRUE
     return(list(ClassSubsets = ClassSubsets, ClassSubsets2 = ClassSubsets2))
   }
 
+}
+
+
+plot_funregions.groc <- function(x, FPR = 0.15, FPR2 = NULL, plot.subsets = TRUE, new.window = FALSE, main = NULL, ylim = NULL, ...){
+  
+  obj <- x
+  X <- c(obj$controls, obj$cases); D <- c(rep(0,length(obj$controls)), rep(1,length(obj$cases)))
+  
+  if(obj$side == "right"){
+    
+    obj.hroc <- hROC(X, D, type = "h.fun", h.fun = function(x){mean(obj$c < x)})
+    
+  }else if(obj$side == "left"){
+    
+    obj.hroc <- hROC(X, D, type = "h.fun", h.fun = function(x){mean(obj$c > x)})
+    
+  }else if(obj$side %in% c("both", "both2")){
+    
+    check <- ( all(diff(obj$xl)>=0) & all(diff(obj$xu)<=0) ) | ( all(diff(obj$xl)<=0) & all(diff(obj$xu)>=0) )
+    if(!check) stop("plot_funregions() function is only allowed for `groc` objects with self-contained classification subsets.")
+    
+    if(obj$side == "both"){
+      obj.hroc <- hROC(X, D, type = "h.fun", 
+                       h.fun = function(x){mean(obj$xl > x) + mean(obj$xu < x)})
+    }else{
+      obj.hroc <- hROC(X, D, type = "h.fun", 
+                       h.fun = function(x){mean(obj$xl < x) + mean(obj$xu > x)})
+    }
+    
+  }
+  
+  plot_funregions.hroc(x = obj.hroc, FPR = FPR, FPR2 = FPR2, plot.subsets = plot.subsets, new.window = new.window, main = main, ylim = ylim, ...)
+  
 }

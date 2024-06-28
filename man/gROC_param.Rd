@@ -53,6 +53,9 @@ gROC_param(X, D, side = c("right", "left", "both", "both2"), N = NULL, ...)
   \item{p0}{Estimate of the "central value", \eqn{\mu^*}, about to which the thresholds \eqn{x^L} 
     and \eqn{x^U} are symmetrical.}
 }
+\references{
+  P. Martínez-Camblor and J. C. Pardo-Fernández (2019) ``Parametric estimates for the receiver operating characteristic curve generalization for non-monotone relationships''. \emph{Statistical Methods in Medical Research}, \bold{28}(7): 2032–2048. DOI: \doi{10.1177/0962280217747009}.
+}
 \examples{
 data(HCC)
 

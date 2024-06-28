@@ -5,7 +5,11 @@ gROC <- function(X, D, ...) {
 gROC.default <- function(X, D, side = c("right", "left", "both", "both2"),
                          restric = FALSE, optim = TRUE, t0 = NULL, t0max = FALSE, verbose = FALSE, ...){
 
+  if(!is.null(ncol(X))) stop("X should be a vector, not a matrix.")
+  if(length(X) != length(D)) stop("X and D should have the same length.")
+  
   levels.names <- levels(as.factor(D))
+  if(length(levels.names) != 2) stop("D should be a vector with two different levels.")
   controls <- split(X,D)[[levels.names[1]]]; cases <- split(X,D)[[levels.names[2]]]
   D <- ifelse(as.factor(D)==levels.names[1], 0, 1); levels <- levels(as.factor(D))
 

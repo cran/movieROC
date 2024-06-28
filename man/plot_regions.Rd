@@ -1,7 +1,7 @@
-\name{plot.regions}
-\alias{plot.regions}
-\alias{plot.regions.groc}
-\alias{plot.regions.hroc}
+\name{plot_regions}
+\alias{plot_regions}
+\alias{plot_regions.groc}
+\alias{plot_regions.hroc}
 \title{
   Plot the classification regions underlying a ROC curve
 }
@@ -12,14 +12,13 @@
   for every false-positive rate (grey color by default); right, 90º rotated ROC curve. 
 }
 \usage{
-\S3method{plot}{regions}(x, ...)
-\S3method{plot.regions}{groc}(x, FPR = 0.15, plot.roc = TRUE, plot.auc = FALSE, 
+\S3method{plot_regions}{groc}(x, FPR = 0.15, plot.roc = TRUE, plot.auc = FALSE, 
   col = c("white", "grey"), col.FPR = "blue", lwd = 2, new.window = TRUE, 
   type.plotroc = "s", xlim = NULL, mar = c(5, 6, 4, 0.25), 
   cex.lab = 1.5, cex.axis = 1.5, cex.main = 1.75, main = NULL, 
   xlab = "", ylab = "False-Positive Rate", main.plotroc = "ROC curve", 
   legend = TRUE, cex.legend = 1, ...)
-\S3method{plot.regions}{hroc}(x, FPR = 0.15, plot.roc = TRUE, plot.auc = FALSE, 
+\S3method{plot_regions}{hroc}(x, FPR = 0.15, plot.roc = TRUE, plot.auc = FALSE, 
   col = c('white','grey'), col.FPR = 'blue', lwd = 2, new.window = TRUE, 
   type.plotroc = 's', xlim = NULL, mar = c(5,6,4,0.25), 
   cex.lab = 1.5, cex.axis = 1.5, cex.main = 1.75, main = NULL, 
@@ -72,12 +71,12 @@ A plot of the classification regions underlying a ROC curve with the selected gr
 data(HCC)
 # 1. Standard ROC curve
 roc_cg18384097 <- gROC(X = HCC$cg18384097, D = HCC$tumor)
-plot.regions(roc_cg18384097, plot.auc = TRUE)
+plot_regions(roc_cg18384097, plot.auc = TRUE)
 # 2. gROC curve
 groc_cg18384097 <- gROC(X = HCC$cg18384097, D = HCC$tumor, side = "both")
-plot.regions(groc_cg18384097, plot.auc = TRUE)
+plot_regions(groc_cg18384097, plot.auc = TRUE)
 # 3. hROC curve with a restricted cubic splines transformation
 hroc_cg18384097 <- hROC(X = HCC$cg18384097, D = HCC$tumor, 
     formula.lrm = "D ~ rcs(X,8)") 
-plot.regions(hroc_cg18384097, plot.auc = TRUE)
+plot_regions(hroc_cg18384097, plot.auc = TRUE)
 }

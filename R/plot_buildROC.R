@@ -1,9 +1,9 @@
-plot.buildROC <- function(x, ...) {
-  UseMethod("plot.buildROC")
+plot_buildROC <- function(x, ...) {
+  UseMethod("plot_buildROC")
 }
 
 
-plot.buildROC.groc <- function(x, FPR = NULL, C = NULL, XL = NULL, XU = NULL, h = c(1,1), histogram = FALSE, breaks = 15,
+plot_buildROC.groc <- function(x, FPR = NULL, C = NULL, XL = NULL, XU = NULL, h = c(1,1), histogram = FALSE, breaks = 15,
                                reduce = TRUE, build.process = FALSE, completeROC = FALSE,
                                new.window = FALSE, legends = FALSE, type = 's',
                                cex.point = 1.5, lwd.curve = 2, mar = NULL, lim.density = 0.01, xlim = NULL, ylim = NULL,
@@ -236,155 +236,17 @@ plot.buildROC.groc <- function(x, FPR = NULL, C = NULL, XL = NULL, XU = NULL, h 
 }
 
 
-plot.buildROC.biroc <- function(x, FPR = 0.15, build.process = FALSE, completeROC = TRUE,
-                                new = FALSE, new.window = FALSE, border = TRUE, cutoff = TRUE, legends = FALSE, type = 's',
-                                col.controlscases = c('#485C99','#8F3D52'), col.threshold = '#FCBA04', col.curve = 'black',
-                                cex.point = 1.5, alpha.points = .75, alpha.contour = 0.25, lwd.curve = 2, lty.curve = 1,
-                                cex = 0.8, cex.lab = 1.5, cex.axis = 1.5, cex.main = 2, xlab = "X1", ylab = "X2",
-                                lf = NULL, eps = sqrt(.Machine$double.eps), ...){
-
-  obj <- x
-  X <- obj$X; D <- obj$D; Z <- obj$Z
-  t <- obj$t; roc <- obj$roc; points <- obj$c; auc <- obj$auc
-
-  if(!is.null(FPR) && FPR < 0){
-    warning("FPR is lower than 0.")
-    FPR <- NULL
-  }else if(!is.null(FPR) && FPR > 1){
-    warning("FPR is larger than 1.")
-    FPR <- NULL
-  }
-
-
-  ## Create the 2D grid and calculate the result of the combination over every pair of points
-
-  x <- X[,1]; y <- X[,2]
-  lx <- (max(x)-min(x))/20; ly <- (max(y)-min(y))/20
-  xx <- seq(min(x)-lx, max(x)+lx, length.out = 100)
-  yy <- seq(min(y)-ly, max(y)+ly, length.out = 100)
-
-  if(obj$method == "lrm"){
-
-    if(is.null(lf)) lf <- max(min(sort(unique(Z))[-1]-sort(unique(Z))[-length(unique(Z))]), eps) else lf <- lf
-    f <- outer(xx,yy,function(x,y) suppressWarnings(predict(obj$model, data.frame(X = matrix(cbind(x,y), length(x), 2)))))
-
-  }else if(obj$method == "kernelOptimal"){
-
-    if(is.null(lf)) lf <- max(min(sort(unique(Z))[-1]-sort(unique(Z))[-length(unique(Z))]), eps) else lf <- lf
-    optimalT <- obj$optimalT
-    f <- outer(xx, yy, function(x,y) optimalT(cbind(x,y)))
-    warning(paste0(round(sum(is.na(f))/length(f)*100), "% of values in the grid has a NaN optimalT. These have been replaced by adjacent value."))
-    f <- zoo::na.locf(f)
-    f <- zoo::na.locf(f, fromLast = TRUE)
-
-  }else if(obj$method %in% c("fixedLinear", "fixedQuadratic")){
-
-    lf <- ifelse(is.null(lf), max(min(sort(unique(Z))[-1]-sort(unique(Z))[-length(unique(Z))]), eps), lf)
-
-    if(obj$method == "fixedLinear"){
-      f <- outer(xx, yy, function(x,y) c(tcrossprod(cbind(x,y), matrix(obj$coefLinear, nrow = 1))))
-    }else{
-      f <- outer(xx, yy, function(x,y) c(tcrossprod(cbind(x,y,x*y,x^2,y^2), matrix(obj$coefQuadratic, nrow = 1))))
-    }
-
-  }else if(obj$method %in% c("dynamicMeisner", "dynamicEmpirical")){
-
-    CoefTable <- obj$CoefTable
-    m <- sum(D == levels(as.factor(D))[1])
-    lf <- ifelse(is.null(lf), mean(sapply(CoefTable, function(x) x$lf)), lf)
-    f <- lapply(1:m, function(i){CoefTable[[i]]$f})
-  }
-
-  oldpar <- par(no.readonly = TRUE)
-  on.exit(par(oldpar))
-
-  if(is.null(FPR)){
-
-    if(new.window) dev.new(width = 9, height = 5, unit = "in")
-    par(fig = c(0,0.49,0,1), mar = c(5.1,5.1,4.1,2.1), new = new)
-
-    plot(x, y, 'p', col = ifelse(D, adjustcolor(col.controlscases[2], alpha.f = alpha.points), adjustcolor(col.controlscases[1], alpha.f = alpha.points)),
-           pch = 16, cex = cex, xlim = range(x,finite=TRUE)+lx*c(-1,1),  ylim = range(y,finite=TRUE)+ly*c(-1,1), xaxs = "i", yaxs = "i", xaxt = ifelse(new,"n","s"), yaxt = ifelse(new,"n","s"),
-           xlab = xlab, ylab = ylab, main = "Classification subsets", cex.lab = cex.lab, cex.axis = cex.axis, cex.main = cex.main)
-
-    par(fig = c(0.51,1,0,1), new = TRUE)
-    plot(c(0,t,1), c(0,roc,1), type = type, xlim = c(0,1), ylim = c(0,1), lwd = lwd.curve, lty = lty.curve, col = col.curve,
-         cex.lab = cex.lab, cex.axis = cex.axis, cex.main = cex.main, xlab = "1-Specificity", ylab = "Sensitivity", main = "ROC curve")
-    abline(0, 1, col = 'gray', lty = 2)
-    axis(1, at = seq(0,1,0.01), labels = F, tck = -0.01)
-    axis(1, at = seq(0.1,0.9,0.1), labels = F, tck = -0.02)
-    axis(2, at = seq(0,1,0.01), labels = F, tck = -0.01)
-    axis(2, at = seq(0.1,0.9,0.1), labels = F, tck = -0.02)
-
-  }else{
-    index.max <- which.max(t[t <= FPR])
-    T <- t[index.max]; ROC <- roc[index.max]; C <- points[t==T]
-
-    if(new.window) dev.new(width = 9, height = 5, unit = "in")
-    par(fig = c(0,0.49,0,1), mar = c(5.1,5.1,4.1,2.1), new = new)
-
-    colTrans <- col.threshold
-    colTrans <- rgb(red = col2rgb(colTrans)[1], green = col2rgb(colTrans)[2], blue = col2rgb(colTrans)[3], alpha = alpha.contour*255, maxColorValue = 255)
-
-    plot(x, y, 'p', col = ifelse(D, adjustcolor(col.controlscases[2],alpha.f = alpha.points), adjustcolor(col.controlscases[1], alpha.f = alpha.points)),
-         pch = 16, cex = cex, xlim = range(x,finite=TRUE)+lx*c(-1,1), ylim = range(y,finite=TRUE)+ly*c(-1,1), xaxs = "i", yaxs = "i", xaxt = ifelse(new,"n","s"), yaxt = ifelse(new,"n","s"),
-         xlab = xlab, ylab = ylab, main = "Classification subsets", cex.lab = cex.lab, cex.axis = cex.axis, cex.main = cex.main)
-
-    if(obj$method %in% c("dynamicMeisner","dynamicEmpirical")){
-      .filled.contour(xx, yy, f[[index.max]], levels = c(C,max(f[[index.max]])), col = colTrans)
-      if(border){
-        abline(C/obj$coefLinear[2,index.max], -obj$coefLinear[1,index.max]/obj$coefLinear[2,index.max], col = col.threshold, lwd = lwd.curve)
-      }
-    }else{
-      .filled.contour(xx, yy, f, levels = c(C,max(f)), col = colTrans)
-      if(border){
-        if(obj$method != "fixedLinear") contour(xx, yy, f, nlevels = 1, levels = C, col = col.threshold, add = TRUE, drawlabels = FALSE, lwd = lwd.curve)
-        if(obj$method == "fixedLinear") abline(C/obj$coefLinear[2], -obj$coefLinear[1]/obj$coefLinear[2], col = col.threshold, lwd = lwd.curve)
-      }
-    }
-
-    if(legends){
-      legend('bottomright', inset = 0.03, c("Controls","Cases"), col = col.controlscases, lty = 1, cex = 0.5)
-      legend('topright', inset = 0.03, c("Classified as Controls","Classified as Cases"), fill = c('white',colTrans), cex = 0.5)
-    }
-
-    par(fig = c(0.51,1,0,1), new = TRUE)
-
-      if(build.process){
-        plot(c(0,t,1), c(0,roc,1), type = type, col = ifelse(completeROC,'gray','white'), xlim = c(0,1), ylim = c(0,1), xaxt = ifelse(new,"n","s"), yaxt = ifelse(new,"n","s"),
-             lwd = lwd.curve, lty = lty.curve, xlab = "1-Specificity", ylab = "Sensitivity", main = "ROC curve", cex.lab = cex.lab, cex.axis = cex.axis, cex.main = cex.main)
-        lines(c(0,t[1:index.max]),c(0,roc[1:index.max]), type = type, lwd = lwd.curve, col = col.curve, lty = lty.curve)
-      }else{
-        plot(c(0,t,1), c(0,roc,1), type = type, lwd = lwd.curve, lty = lty.curve, col = col.curve, xlim = c(0,1), ylim = c(0,1), xaxt = ifelse(new,"n","s"), yaxt = ifelse(new,"n","s"),
-             xlab = "1-Specificity", ylab = "Sensitivity", main = "ROC curve", cex.lab = cex.lab, cex.axis = cex.axis, cex.main = cex.main)
-      }
-      points(t[index.max], roc[index.max], pch = 16, col = col.threshold, cex = cex.point)
-      if(cutoff) text(t[index.max]+0.025, roc[index.max], format(C,1,digits=2), pos = 1, col = 'gray30', cex = cex.point)
-
-    abline(0, 1, col = 'gray', lty = 2)
-    axis(1, at = seq(0,1,0.01), labels = F, tck = -0.01)
-    axis(1, at = seq(0.1,0.9,0.1), labels = F, tck = -0.02)
-    axis(2, at = seq(0,1,0.01), labels = F, tck = -0.01)
-    axis(2, at = seq(0.1,0.9,0.1), labels = F, tck = -0.02)
-    if(legends) legend("bottomright", paste0("AUC=", round(auc,3)), inset = 0.02, bty = "n")
-
-  }
-
-
-}
-
-
-plot.buildROC.multiroc <- function(x, FPR = 0.15, display.method = c("PCA", "OV"), displayOV = c(1,2), build.process = FALSE, completeROC = TRUE,
+plot_buildROC.multiroc <- function(x, FPR = 0.15, display.method = c("PCA", "OV"), displayOV = c(1,2), build.process = FALSE, completeROC = TRUE,
                                    new = FALSE, new.window = FALSE, border = FALSE, cutoff = TRUE, legends = FALSE, type = 's',
                                    col.controlscases = c('#485C99','#8F3D52'), col.threshold = '#FCBA04', col.curve = 'black',
                                    cex.point = 1.5, alpha.points = .75, alpha.contour = 0.25, lwd.curve = 2, lty.curve = 1,
                                    cex = 0.8, cex.lab = 1.5, cex.axis = 1.5, cex.main = 2, xlab = NULL, ylab = NULL,
                                    lf = NULL, eps = sqrt(.Machine$double.eps), ...){
-
+  
   obj <- x
   X <- obj$X; D <- obj$D; Z <- obj$Z
   t <- obj$t; roc <- obj$roc; points <- obj$c; auc <- obj$auc
-
+  
   if(!is.null(FPR) && FPR < 0){
     warning("FPR is lower than 0.")
     FPR <- NULL
@@ -392,85 +254,131 @@ plot.buildROC.multiroc <- function(x, FPR = 0.15, display.method = c("PCA", "OV"
     warning("FPR is larger than 1.")
     FPR <- NULL
   }
-
+  
   ## Create the 2D grid and calculate the result of the combination over every pair of points
-
+  
   p <- ncol(X)
-
+  
   display.method <- match.arg(display.method)
-
+  
   if(display.method == "OV"){
-
+    
     if(is.null(xlab)) xlab <- paste0("X.", displayOV[1])
     if(is.null(ylab)) ylab <- paste0("X.", displayOV[2])
     if(is.integer(displayOV) | length(displayOV)!=2) stop("displayOV should be a vector of length two indicating the variables (columns in X) used for displaying the results.")
-    if(min(displayOV) < 1 | max(displayOV) > p) stop("displayOV should be a vector with two integers between 1 and dimension p.")
-
+    if(min(displayOV) < 1 | max(displayOV) > p) stop(paste0("displayOV should be a vector with two integers between 1 and dimension p = ", p, "."))
+    
     x <- X[,displayOV[1]]; y <- X[,displayOV[2]]
     lx <- (max(x)-min(x))/20; ly <- (max(y)-min(y))/20
     xx <- seq(min(x)-lx, max(x)+lx, length.out = 100)
     yy <- seq(min(y)-ly, max(y)+ly, length.out = 100)
-
-    if(obj$method %in% c("lrm", "fixedLinear")){
-
-      lf <- ifelse(is.null(lf), max(min(sort(unique(Z))[-1]-sort(unique(Z))[-length(unique(Z))]), eps), lf)
-
-      f <- outer(xx, yy, function(x,y){
-        out <- matrix(0, length(x), p)
-        out[,displayOV[1]] <- x; out[,displayOV[2]] <- y
-        if(obj$method == "lrm"){
-          suppressWarnings(Vectorize(predict(obj$model, data.frame(X = out))))
-        }else{
-          c(tcrossprod(out, matrix(obj$coefLinear, nrow = 1)))
-        }
-      })
-
-    }else{ # obj$method == "dynamicMeisner"
-
-      CoefTable <- obj$CoefTable
-      m <- nrow(obj$controls)
-      f <- lapply(1:m, function(i){
-          outer(xx, yy, function(x,y){
-            out <- matrix(0, length(x), p)
-            out[,displayOV[1]] <- x; out[,displayOV[2]] <- y
-            c(tcrossprod(out, matrix(obj$coefLinear[,i], nrow = 1)))
-          })
-        })
-
-      lf <- ifelse(is.null(lf), mean(sapply(CoefTable, function(x) x$lf)), lf)
-
-    }
-
-  }else{ # if display.method = "PCA"
-
-    if(is.null(xlab)) xlab <- "PC1"
-    if(is.null(ylab)) ylab <- "PC2"
-
-    PC.output <- prcomp(data.frame(X), scale = FALSE)
-    x <- PC.output$x[,1]; y <- PC.output$x[,2]
-    lx <- (max(x)-min(x))/20; ly <- (max(y)-min(y))/20
-    xx <- seq(min(x)-lx, max(x)+lx, length.out = 100)
-    yy <- seq(min(y)-ly, max(y)+ly, length.out = 100)
-
-    x.PC <- function(PC.coor){
-      diag(p) %*% solve(t(PC.output$rotation)) %*% t(PC.coor)
-    }
-
-    if(obj$method %in% c("lrm", "fixedLinear")){
-
-      f <- outer(xx, yy, function(x,y){
-        out.pc <- matrix(0, length(x), p)
-        out.pc[,1] <- x; out.pc[,2] <- y
-        out <- matrix(x.PC(out.pc), ncol = p, byrow = TRUE)
+    
+    if(obj$method == c("lrm")){
+      
+      if(is.null(lf)) lf <- max(min(sort(unique(Z))[-1]-sort(unique(Z))[-length(unique(Z))]), eps) else lf <- lf
+      
+      if(p == 2){
+        f <- outer(xx,yy,function(x,y) suppressWarnings(predict(obj$model, data.frame(X = matrix(cbind(x,y), length(x), 2)))))
+      }else{
+        f <- outer(xx, yy, function(x,y){
+          out <- matrix(0, length(x), p)
+          out[,displayOV[1]] <- x; out[,displayOV[2]] <- y
           if(obj$method == "lrm"){
             suppressWarnings(Vectorize(predict(obj$model, data.frame(X = out))))
           }else{
             c(tcrossprod(out, matrix(obj$coefLinear, nrow = 1)))
           }
         })
-
-    }else{ # obj$method == "dynamicMeisner"
-
+      }
+      
+    }else if(obj$method == "fixedLinear"){
+      
+      if(is.null(lf)) lf <- max(min(sort(unique(Z))[-1]-sort(unique(Z))[-length(unique(Z))]), eps) else lf <- lf
+      
+      if(p == 2){
+        f <- outer(xx, yy, function(x,y) c(tcrossprod(cbind(x,y), matrix(obj$coefLinear, nrow = 1))))
+      }else{
+        f <- outer(xx, yy, function(x,y){
+          out <- matrix(0, length(x), p)
+          out[,displayOV[1]] <- x; out[,displayOV[2]] <- y
+          if(obj$method == "lrm"){
+            suppressWarnings(Vectorize(predict(obj$model, data.frame(X = out))))
+          }else{
+            c(tcrossprod(out, matrix(obj$coefLinear, nrow = 1)))
+          }
+        })
+      }
+      
+    }else if(obj$method == "fixedQuadratic"){
+      
+      if(is.null(lf)) lf <- max(min(sort(unique(Z))[-1]-sort(unique(Z))[-length(unique(Z))]), eps) else lf <- lf
+      
+      f <- outer(xx, yy, function(x,y) c(tcrossprod(cbind(x,y,x*y,x^2,y^2), matrix(obj$coefQuadratic, nrow = 1))))
+      
+    }else if(p == 2 & obj$method %in% c("dynamicMeisner", "dynamicEmpirical")){ # p=2 AND obj$method == "dynamicMeisner" OR obj$method == "dynamicEmpirical"
+      
+      CoefTable <- obj$CoefTable
+      m <- sum(D == levels(as.factor(D))[1])
+      lf <- ifelse(is.null(lf), mean(sapply(CoefTable, function(x) x$lf)), lf)
+      f <- lapply(1:m, function(i){CoefTable[[i]]$f})
+      
+    }else if(p > 2 & obj$method == "dynamicMeisner"){ # p>2 AND obj$method == "dynamicMeisner"
+      
+      CoefTable <- obj$CoefTable
+      m <- nrow(obj$controls)
+      lf <- ifelse(is.null(lf), mean(sapply(CoefTable, function(x) x$lf)), lf)
+      f <- lapply(1:m, function(i){
+        outer(xx, yy, function(x,y){
+          out <- matrix(0, length(x), p)
+          out[,displayOV[1]] <- x; out[,displayOV[2]] <- y
+          c(tcrossprod(out, matrix(obj$coefLinear[,i], nrow = 1)))
+        })
+      })
+      
+    }else if(p == 2 & obj$method == "kernelOptimal"){
+      
+      if (is.null(lf)) 
+        lf <- max(min(sort(unique(Z))[-1] - sort(unique(Z))[-length(unique(Z))]), eps)
+      else lf <- lf
+      optimalT <- obj$optimalT
+      f <- outer(xx, yy, function(x, y) optimalT(cbind(x, y)))
+      warning(paste0(round(sum(is.na(f))/length(f) * 100), 
+                     "% of values in the grid has a NaN optimalT. These have been replaced by adjacent value."))
+      f <- zoo::na.locf(f)
+      f <- zoo::na.locf(f, fromLast = TRUE)
+      
+    }
+    
+  }else{ # if display.method = "PCA"
+    
+    if(is.null(xlab)) xlab <- "PC1"
+    if(is.null(ylab)) ylab <- "PC2"
+    
+    PC.output <- prcomp(data.frame(X), scale = FALSE)
+    x <- PC.output$x[,1]; y <- PC.output$x[,2]
+    lx <- (max(x)-min(x))/20; ly <- (max(y)-min(y))/20
+    xx <- seq(min(x)-lx, max(x)+lx, length.out = 100)
+    yy <- seq(min(y)-ly, max(y)+ly, length.out = 100)
+    
+    x.PC <- function(PC.coor){
+      diag(p) %*% solve(t(PC.output$rotation)) %*% t(PC.coor)
+    }
+    
+    if(obj$method %in% c("lrm", "fixedLinear")){
+      
+      f <- outer(xx, yy, function(x,y){
+        out.pc <- matrix(0, length(x), p)
+        out.pc[,1] <- x; out.pc[,2] <- y
+        out <- matrix(x.PC(out.pc), ncol = p, byrow = TRUE)
+        if(obj$method == "lrm"){
+          suppressWarnings(Vectorize(predict(obj$model, data.frame(X = out))))
+        }else{
+          c(tcrossprod(out, matrix(obj$coefLinear, nrow = 1)))
+        }
+      })
+      
+    }else if(obj$method == "dynamicMeisner"){ # obj$method == "dynamicMeisner"
+      
       CoefTable <- obj$CoefTable
       m <- nrow(obj$controls)
       f <- lapply(1:m, function(i){
@@ -481,23 +389,23 @@ plot.buildROC.multiroc <- function(x, FPR = 0.15, display.method = c("PCA", "OV"
           c(tcrossprod(out, matrix(obj$coefLinear[,i], nrow = 1)))
         })
       })
-
+      
     }
-
+    
   }
-
+  
   oldpar <- par(no.readonly = TRUE)
   on.exit(par(oldpar))
-
+  
   if(is.null(FPR)){
-
+    
     if(new.window) dev.new(width = 9, height = 5, unit = "in")
     par(fig = c(0,0.49,0,1), mar = c(5.1,5.1,4.1,2.1), new = new)
-
-    plot(x, y, 'p', col = ifelse(D, adjustcolor(col.controlscases[2],alpha.f = alpha.points), adjustcolor(col.controlscases[1], alpha.f = alpha.points)),
+    
+    plot(x, y, 'p', col = ifelse(D, adjustcolor(col.controlscases[2], alpha.f = alpha.points), adjustcolor(col.controlscases[1], alpha.f = alpha.points)),
          pch = 16, cex = cex, xlim = range(x,finite=TRUE)+lx*c(-1,1), ylim = range(y,finite=TRUE)+ly*c(-1,1), xaxs = "i", yaxs = "i", xaxt = ifelse(new,"n","s"), yaxt = ifelse(new,"n","s"),
          xlab = xlab, ylab = ylab, main = "Classification subsets", cex.lab = cex.lab, cex.axis = cex.axis, cex.main = cex.main)
-
+    
     par(fig = c(0.51,1,0,1), new = TRUE)
     plot(c(0,t,1), c(0,roc,1), type = type, xlim = c(0,1), ylim = c(0,1), lwd = lwd.curve, lty = lty.curve, col = col.curve,
          cex.lab = cex.lab, cex.axis = cex.axis, cex.main = cex.main, xlab = "1-Specificity", ylab = "Sensitivity", main = "ROC curve")
@@ -506,48 +414,72 @@ plot.buildROC.multiroc <- function(x, FPR = 0.15, display.method = c("PCA", "OV"
     axis(1, at = seq(0.1,0.9,0.1), labels = F, tck = -0.02)
     axis(2, at = seq(0,1,0.01), labels = F, tck = -0.01)
     axis(2, at = seq(0.1,0.9,0.1), labels = F, tck = -0.02)
-
+    
   }else{
+    
     index.max <- which.max(t[t <= FPR])
     T <- t[index.max]; ROC <- roc[index.max]; C <- points[t==T]
-
+    
     if(new.window) dev.new(width = 9, height = 5, unit = "in")
     par(fig = c(0,0.49,0,1), mar = c(5.1,5.1,4.1,2.1), new = new)
-
+    
     colTrans <- col.threshold
     colTrans <- rgb(red = col2rgb(colTrans)[1], green = col2rgb(colTrans)[2], blue = col2rgb(colTrans)[3], alpha = alpha.contour*255, maxColorValue = 255)
-
-
-    if(obj$method == "dynamicMeisner"){
-
+    
+    if(p == 2){
+      
       plot(x, y, 'p', col = ifelse(D, adjustcolor(col.controlscases[2],alpha.f = alpha.points), adjustcolor(col.controlscases[1], alpha.f = alpha.points)),
-           pch = ifelse(Z[,index.max] > C, 16, 15), cex = cex, xaxs = "i", yaxs = "i", xaxt = ifelse(new,"n","s"), yaxt = ifelse(new,"n","s"),
-           xlim = range(x,finite=TRUE)+lx*c(-1,1), ylim = range(y,finite=TRUE)+ly*c(-1,1),
+           pch = 16, cex = cex, xlim = range(x,finite=TRUE)+lx*c(-1,1), ylim = range(y,finite=TRUE)+ly*c(-1,1), xaxs = "i", yaxs = "i", xaxt = ifelse(new,"n","s"), yaxt = ifelse(new,"n","s"),
            xlab = xlab, ylab = ylab, main = "Classification subsets", cex.lab = cex.lab, cex.axis = cex.axis, cex.main = cex.main)
-
-      points(x, y, col = ifelse(Z[,index.max] > C, col.threshold, 'gray'), cex = 1.3*cex, pch = ifelse(Z[,index.max] > C, 21, 22))
-      if(border) contour(xx, yy, f[[index.max]], nlevels = 1, levels = C, col = col.threshold, add = TRUE, drawlabels = FALSE, lwd = lwd.curve)
-
-    }else{
-
-      plot(x, y, 'p', col = ifelse(D, adjustcolor(col.controlscases[2],alpha.f = alpha.points), adjustcolor(col.controlscases[1], alpha.f = alpha.points)),
-           pch = ifelse(Z > C, 16, 15), cex = cex, xaxs = "i", yaxs = "i", xaxt = ifelse(new,"n","s"), yaxt = ifelse(new,"n","s"),
-           xlim = range(x,finite=TRUE)+lx*c(-1,1), ylim = range(y,finite=TRUE)+ly*c(-1,1),
-           xlab = xlab, ylab = ylab, main = "Classification subsets", cex.lab = cex.lab, cex.axis = cex.axis, cex.main = cex.main)
-
-      points(x, y, col = ifelse(Z > C, col.threshold, 'gray'), cex = 1.3*cex, pch = ifelse(Z > C, 21, 22))
-      if(border) contour(xx, yy, f, nlevels = 1, levels = C, col = col.threshold, add = TRUE, drawlabels = FALSE, lwd = lwd.curve)
-
+      
+      if(obj$method %in% c("dynamicMeisner","dynamicEmpirical")){
+        .filled.contour(xx, yy, f[[index.max]], levels = c(C,max(f[[index.max]])), col = colTrans)
+        if(border){
+          abline(C/obj$coefLinear[2,index.max], -obj$coefLinear[1,index.max]/obj$coefLinear[2,index.max], col = col.threshold, lwd = lwd.curve)
+        }
+      }else{
+        .filled.contour(xx, yy, f, levels = c(C,max(f)), col = colTrans)
+        if(border){
+          if(obj$method != "fixedLinear") contour(xx, yy, f, nlevels = 1, levels = C, col = col.threshold, add = TRUE, drawlabels = FALSE, lwd = lwd.curve)
+          if(obj$method == "fixedLinear") abline(C/obj$coefLinear[2], -obj$coefLinear[1]/obj$coefLinear[2], col = col.threshold, lwd = lwd.curve)
+        }
+      }
+      
     }
-
-
+    
+    if(p > 2){
+      
+      if(obj$method == "dynamicMeisner"){
+        
+        plot(x, y, 'p', col = ifelse(D, adjustcolor(col.controlscases[2],alpha.f = alpha.points), adjustcolor(col.controlscases[1], alpha.f = alpha.points)),
+             pch = ifelse(Z[,index.max] > C, 16, 15), cex = cex, xaxs = "i", yaxs = "i", xaxt = ifelse(new,"n","s"), yaxt = ifelse(new,"n","s"),
+             xlim = range(x,finite=TRUE)+lx*c(-1,1), ylim = range(y,finite=TRUE)+ly*c(-1,1),
+             xlab = xlab, ylab = ylab, main = "Classification subsets", cex.lab = cex.lab, cex.axis = cex.axis, cex.main = cex.main)
+        
+        points(x, y, col = ifelse(Z[,index.max] > C, col.threshold, 'gray'), cex = 1.3*cex, pch = ifelse(Z[,index.max] > C, 21, 22))
+        if(border) contour(xx, yy, f[[index.max]], nlevels = 1, levels = C, col = col.threshold, add = TRUE, drawlabels = FALSE, lwd = lwd.curve)
+        
+      }else{
+        
+        plot(x, y, 'p', col = ifelse(D, adjustcolor(col.controlscases[2],alpha.f = alpha.points), adjustcolor(col.controlscases[1], alpha.f = alpha.points)),
+             pch = ifelse(Z > C, 16, 15), cex = cex, xaxs = "i", yaxs = "i", xaxt = ifelse(new,"n","s"), yaxt = ifelse(new,"n","s"),
+             xlim = range(x,finite=TRUE)+lx*c(-1,1), ylim = range(y,finite=TRUE)+ly*c(-1,1),
+             xlab = xlab, ylab = ylab, main = "Classification subsets", cex.lab = cex.lab, cex.axis = cex.axis, cex.main = cex.main)
+        
+        points(x, y, col = ifelse(Z > C, col.threshold, 'gray'), cex = 1.3*cex, pch = ifelse(Z > C, 21, 22))
+        if(border) contour(xx, yy, f, nlevels = 1, levels = C, col = col.threshold, add = TRUE, drawlabels = FALSE, lwd = lwd.curve)
+        
+      }
+      
+    }
+    
     if(legends){
       legend('bottomright', inset = 0.03, c("Controls", "Cases"), col = col.controlscases, lty = 1, cex = 0.5)
       legend('topright', inset = 0.03, c("Classified as Controls","Classified as Cases"), fill = c('white', colTrans), cex = 0.5)
     }
-
+    
     par(fig = c(0.51,1,0,1), new = TRUE)
-
+    
     if(build.process){
       plot(c(0,t,1), c(0,roc,1), type = type, col = ifelse(completeROC,'gray','white'), xlim = c(0,1), ylim = c(0,1), xaxt = ifelse(new,"n","s"), yaxt = ifelse(new,"n","s"),
            lwd = lwd.curve, lty = lty.curve, xlab = "1-Specificity", ylab = "Sensitivity", main = "ROC curve", cex.lab = cex.lab, cex.axis = cex.axis, cex.main = cex.main)
@@ -558,16 +490,14 @@ plot.buildROC.multiroc <- function(x, FPR = 0.15, display.method = c("PCA", "OV"
     }
     points(t[index.max], roc[index.max], pch = 16, col = col.threshold, cex = cex.point)
     if(cutoff) text(t[index.max]+0.025, roc[index.max], format(C,1,digits=2), pos = 1, col = 'gray30', cex = cex.point)
-
+    
     abline(0,1, col='gray', lty = 2)
     axis(1, at = seq(0,1,0.01), labels = F, tck = -0.01)
     axis(1, at = seq(0.1,0.9,0.1), labels = F, tck = -0.02)
     axis(2, at = seq(0,1,0.01), labels = F, tck = -0.01)
     axis(2, at = seq(0.1,0.9,0.1), labels = F, tck = -0.02)
     if(legends) legend("bottomright", paste0("AUC=", round(auc,3)), inset = 0.02, bty = "n")
-
+    
   }
-
-
+  
 }
-

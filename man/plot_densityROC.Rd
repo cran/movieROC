@@ -18,7 +18,7 @@ plot_densityROC(obj, h = c(1, 1), C = NULL, build.process = FALSE,
   \item{obj}{
   An object of class \sQuote{groc} with \code{side = "right"} or \code{"left"}.}
   \item{h}{
-  A vector of length 2 with the bandwidth used to compute kernel density estimation for controls and cases, respectively. See \code{adjust} parameter in \code{density} function from \pkg{stats} package. Default: \code{h = c(1,1)}.}
+  A vector of length 2 with the bandwidth used to compute kernel density estimation for controls and cases, respectively. See \code{adjust} parameter in \code{density()} function from \pkg{stats} package. Default: \code{h = c(1,1)}.}
   \item{C}{
   Marker cutoff for which the graphics are displayed. Default: none.}
   \item{build.process}{
@@ -28,7 +28,7 @@ plot_densityROC(obj, h = c(1, 1), C = NULL, build.process = FALSE,
   \item{legends}{
    If TRUE, legends with the meaning of colors are displayed. Default: FALSE.}
   \item{rel.tol}{
-  Relative accuracy requested for the \code{integrate} function from \pkg{stats} package. Default: 0.001.}
+  Relative accuracy requested for the \code{integrate()} function from \pkg{stats} package. Default: 0.001.}
   \item{par.specify}{
   If FALSE, graphics are organized in one row and two columns. Default: FALSE.}
   \item{cex.lab, cex.axis, cex.main}{

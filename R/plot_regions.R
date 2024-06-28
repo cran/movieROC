@@ -1,8 +1,8 @@
-plot.regions <- function(x, ...){
-  UseMethod("plot.regions")
+plot_regions <- function(x, ...){
+  UseMethod("plot_regions")
 }
 
-plot.regions.groc <- function(x, FPR = 0.15, plot.roc = TRUE, plot.auc = FALSE, col = c('white','grey'), col.FPR = 'blue', lwd = 2, new.window = TRUE, type.plotroc = 's', xlim = NULL, mar = c(5,6,4,0.25),
+plot_regions.groc <- function(x, FPR = 0.15, plot.roc = TRUE, plot.auc = FALSE, col = c('white','grey'), col.FPR = 'blue', lwd = 2, new.window = TRUE, type.plotroc = 's', xlim = NULL, mar = c(5,6,4,0.25),
                               cex.lab = 1.5, cex.axis = 1.5, cex.main = 1.75, main = NULL, xlab = "", ylab = "False-Positive Rate", main.plotroc = "ROC curve", legend = TRUE, cex.legend = 1, ...){
 
   obj <- x
@@ -120,7 +120,7 @@ plot.regions.groc <- function(x, FPR = 0.15, plot.roc = TRUE, plot.auc = FALSE, 
 
 
 
-plot.regions.hroc <- function(x, FPR = 0.15, plot.roc = TRUE, plot.auc = FALSE, col = c('white','grey'), col.FPR = 'blue', lwd = 2, new.window = TRUE, type.plotroc = 's', xlim = NULL, mar = c(5,6,4,0.25),
+plot_regions.hroc <- function(x, FPR = 0.15, plot.roc = TRUE, plot.auc = FALSE, col = c('white','grey'), col.FPR = 'blue', lwd = 2, new.window = TRUE, type.plotroc = 's', xlim = NULL, mar = c(5,6,4,0.25),
                               cex.lab = 1.5, cex.axis = 1.5, cex.main = 1.75, main = NULL, xlab = "", ylab = "False-Positive Rate", main.plotroc = "ROC curve", legend = TRUE, cex.legend = 1, verbose = FALSE, ...){
 
   obj <- x
@@ -148,7 +148,9 @@ plot.regions.hroc <- function(x, FPR = 0.15, plot.roc = TRUE, plot.auc = FALSE, 
   colTrans[2] <- rgb(red = col2rgb(col[2])[1], green = col2rgb(col[2])[2], blue = col2rgb(col[2])[3], alpha = 0.25*255, maxColorValue = 255)
 
   plot(X[indexX], Sp[indexX], 'l', xlim = xlim, ylim = c(0,1), xlab = xlab, ylab = ylab, yaxt = 'n', xaxs = 'i', col = colTrans[1],
-       cex.lab = cex.lab, cex.main = cex.main, cex.axis = cex.axis, main = ifelse(is.null(main), paste("Classification subsets:", type, ifelse(type=='lrm', obj$formula, "")), main))
+       cex.lab = cex.lab, cex.main = cex.main, cex.axis = cex.axis, main = ifelse(is.null(main), paste("Classification subsets:", type, 
+                                                                                                       ifelse(type=='lrm', obj$formula, 
+                                                                                                              ifelse(type=='kernel', paste0("(bandwidth = ",obj$kernel.h,")"), ""))), main))
 
   uni.Sp <- unique(Sp)
   if(length(uni.Sp) > 151) uni.Sp <- seq(min(Sp), 1, length.out = 151)

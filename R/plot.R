@@ -20,10 +20,6 @@ plot.groc <- function(x, xlim = c(0,1), ylim = c(0,1), lwd = 3, xlab = "False-Po
 
 }
 
-plot.biroc <- function(x, ...){
-  plot.groc(x, type = 's', ...)
-}
-
 plot.multiroc <- function(x, ...){
   plot.groc(x, type = 's', ...)
 }

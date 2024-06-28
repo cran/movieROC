@@ -8,10 +8,10 @@
   This is one of the main functions of the movieROC package.
   It builds a univariate ROC curve (standard or general) and returns a
   \sQuote{groc} object, a list of class \sQuote{groc}.
-  This object can be \code{print}ed, \code{plot}ted, or \code{predict}ed
+  This object can be \code{\link{print}}ed, \code{\link{plot}}ted, or \code{\link{predict}}ed
   for a particular point. It may be also passed to other functions:
-  \code{\link{plot.regions}}, \code{\link{plot.buildROC}}, \code{\link{movieROC}},
-  \code{\link{plot_densities}}, and \code{\link{plot_densityROC}}.
+  \code{\link{plot_regions}()}, \code{\link{plot_buildROC}()}, \code{\link{movieROC}()},
+  \code{\link{plot_densities}()}, and \code{\link{plot_densityROC}()}.
 }
 \usage{
 gROC(X, D, ...)
@@ -31,7 +31,7 @@ gROC(X, D, ...)
     If TRUE, the gROC curve with restriction \emph{(C)} is computed. Default: FALSE.}
   \item{optim}{
     If TRUE (and \code{restric = TRUE}), the computation of the optimal gROC curve
-    under restriction \emph{(C)} is performed by using Floyd's algorithm. Default: TRUE.}
+    under restriction \emph{(C)} is performed by using Floyd's algorithm (Floyd, 1962), implemented in the \code{allShortestPaths()} function in the \CRANpkg{e1071} package. Default: TRUE.}
   \item{t0}{
     An integer number between 1 and \eqn{m+1} (where \eqn{m} is the negative sample size).
     If \code{restric = TRUE}, the restricted gROC curve is computed departing
@@ -68,6 +68,16 @@ gROC(X, D, ...)
   \item{aucfree}{Area under the curve estimate without restrictions.}
   \item{aucs}{Area under the curve with restriction \emph{(C)} departing from every
     false-positive rate, \eqn{FPR \in \{ 0, 1/m, \dots, 1 \}}.}
+}
+\section{Dependencies}{
+If \code{side = "both"} and \code{optim = TRUE}, the \code{allShortesPaths()} function in the \CRANpkg{e1071} package is used. Also the \code{combinations()} function in \CRANpkg{gtools} and \code{\%[]\%} in \pkg{intrval}.
+}
+\references{
+  P. Martínez-Camblor, N. Corral, C. Rey, J. Pascual, and E. Cernuda-Morollón (2017) ``Receiver operating characteristic curve generalization for non-monotone relationships''. \emph{Statistical Methods in Medical Research}, \bold{26}(1):113–123. DOI: \doi{10.1177/0962280214541095}.
+  
+  S. Pérez-Fernández, P. Martínez-Camblor, P. Filzmoser, and N. Corral (2021). ``Visualizing the decision rules behind the ROC curves: understanding the classification process''. \emph{AStA Advances in Statistical Analysis}, \bold{105}(1):135-161. DOI: \doi{10.1007/s10182-020-00385-2}.
+
+  R. W. Floyd (1962) ``Algorithm 97: Shortest path''. \emph{Communications of the ACM}, \bold{5}: 345–345. DOI: \doi{10.1145/367766.368168}.
 }
 \examples{
 data(HCC)

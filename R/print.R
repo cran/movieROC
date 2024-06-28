@@ -60,6 +60,7 @@ print.hroc <- function(x, ...){
     cat("The estimated parameters of the model are the following:\n")
     print(format(obj$model, digits = 4, trim = TRUE))
   }
+  if(obj$type == 'kernel') cat("The bandwidth used for computing the kernel density estimators is", obj$kernel.h)
 
   index.youden <- which.max(obj$Sp + obj$Se)
   subset <- predict(obj, FPR=1-obj$Sp[index.youden])$ClassSubsets
@@ -77,114 +78,21 @@ print.hroc <- function(x, ...){
 }
 
 
-
-print.biroc <- function(x, ...){
-
-  obj <- x
-  cat("Data was encoded with", obj$levels[1], "(controls) and", obj$levels[2], "(cases).\n")
-
-  cat("There are", sum(obj$D==0),"controls and", sum(obj$D==1),"cases.\n")
-
-  index.youden <- which.max(obj$roc - obj$t)
-
-  if(obj$method == "lrm"){
-
-    if(obj$stepModel){
-      cat("A stepwise logistic regression model from the initial formula", obj$formula, "has been performed.\n")
-      cat("The estimated parameters of the resulting model are the following:\n")
-      print(obj$coefModel)
-    }else{
-      cat("A logistic regression model of the form", obj$formula, "has been performed.\n")
-      cat("The estimated parameters of the model are the following:\n")
-      print(obj$coefModel)
-    }
-
-    sent <- " for the transformation h(X.1,X.2) = ";
-    for(i in 1:length(obj$coefModel)){
-      if(i == 1){
-        sent <- paste0(sent, format(obj$coefModel[i], digits = 3))
-      }else{
-        sent <- paste0(sent, ifelse(obj$coefModel[i]>0, " + ", " - "), format(abs(obj$coefModel[i]), digits = 3), "*", names(obj$coefModel)[i])
-      }
-    }
-
-  }else if(obj$method == "fixedLinear"){
-
-    if(obj$methodLinear == "coefLinear"){
-      cat("A linear combination with fixed parameters in `coefLinear` has been considered.\n")
-    }else{
-      cat("A linear combination with fixed parameters estimated by", obj$methodLinear,"approach has been considered.\n")
-    }
-
-    sent <- " for the transformation h(X.1,X.2) = ";
-    part <- c("X.1", "X.2")
-    for(i in 1:ncol(obj$X)){
-      if(i == 1){
-        sent <- paste0(sent, ifelse(obj$coefLinear[i]>0, " ", " - "), format(abs(obj$coefLinear[i]), digits = 3), "*", part[i])
-      }else{
-        sent <- paste0(sent, ifelse(obj$coefLinear[i]>0, " + ", " - "), format(abs(obj$coefLinear[i]), digits = 3), "*", part[i])
-      }
-    }
-
-    }else if(obj$method == "fixedQuadratic"){
-
-    sent <- " for the transformation h(X.1,X.2) = ";
-    part <- c("X.1", "X.2", "X.1*X.2", "X.1^2", "X.2^2")
-    for(i in 1:length(obj$coefQuadratic)){
-      if(i == 1){
-        sent <- paste0(sent, ifelse(obj$coefQuadratic[i]>0, " ", " - "), format(abs(obj$coefQuadratic[i]), digits = 3), "*", part[i])
-      }else{
-        sent <- paste0(sent, ifelse(obj$coefQuadratic[i]>0, " + ", " - "), format(abs(obj$coefQuadratic[i]), digits = 3), "*", part[i])
-      }
-    }
-
-    }else if(obj$method == "dynamicMeisner" | obj$method == "dynamicEmpirical"){
-
-      cat("A linear combination with dynamic parameters has been considered.\n")
-
-      coefs <- obj$coefLinear[,index.youden]
-      sent <- " for the transformation h(X.1,X.2) = ";
-      part <- c("X.1", "X.2")
-      for(i in 1:ncol(obj$X)){
-        if(i == 1){
-          sent <- paste0(sent, ifelse(coefs[i]>0, " ", " - "), format(abs(coefs[i]), digits = 3), "*", part[i])
-        }else{
-          sent <- paste0(sent, ifelse(coefs[i]>0, " + ", " - "), format(abs(coefs[i]), digits = 3), "*", part[i])
-        }
-      }
-
-    }else{ # obj$method == "kernelOptimal"
-      
-      cat("Optimal transformation based on bivariate kernel density estimation has been considered.\n")
-      
-      cat(obj$H.method,"method has been used to estimate the bandwidth matrix in each group.\n")
-      
-      sent <- " for the transformation computed in optimalT(X)"
-      
-    }
-  
-  cat("The specificity and sensitivity reported by the Youden index are ", format(1-obj$t[index.youden], digits = 3, nsmall = 2), " and ", format(obj$roc[index.youden], digits = 3, nsmall = 2), ", respectively, corresponding to the cut-off point ", format(obj$c[index.youden], digits=3), sent, ".\n", sep="")
-
-  cat("The area under the ROC curve (AUC) is ", format(obj$auc, digits = 3, nsmall = 3),".\n", sep="")
-
-}
-
-
-
 print.multiroc <- function(x, ...){
-
+  
   obj <- x
+  p <- ncol(obj$X)
+  
   cat("Data was encoded with", obj$levels[1], "(controls) and", obj$levels[2], "(cases).\n")
-
+  
   cat("There are", sum(obj$D==0),"controls and", sum(obj$D==1),"cases.\n")
-
-  cat("A total of", ncol(obj$X), "variables have been considered.\n")
-
-
+  
+  cat("A total of", p, "variables have been considered.\n")
+  
   index.youden <- which.max(obj$roc - obj$t)
-
+  
   if(obj$method == "lrm"){
-
+    
     if(obj$stepModel){
       cat("A stepwise logistic regression model from the initial formula", obj$formula, "has been performed.\n")
       cat("The estimated parameters of the resulting model are the following:\n")
@@ -196,9 +104,9 @@ print.multiroc <- function(x, ...){
     }
     
     sent <- " for the transformation h(X) in the formula above"
-
+    
   }else if(obj$method == "fixedLinear"){
-
+    
     if(obj$methodLinear == "coefLinear"){
       cat("A linear combination with fixed parameters in `coefLinear` has been considered.\n")
     }else{
@@ -206,30 +114,42 @@ print.multiroc <- function(x, ...){
     }
     
     sent <- " for the transformation h(X) = ";
-    if(length(colnames(obj$X))!=ncol(obj$X)) part <- paste0("X.", 1:ncol(obj$X)) else part <- colnames(obj$X)
-    for(i in 1:ncol(obj$X)){
+    if(length(colnames(obj$X))!=p) part <- paste0("X.", 1:p) else part <- colnames(obj$X)
+    for(i in 1:p){
       if(i == 1){
         sent <- paste0(sent, ifelse(obj$coefLinear[i]>0, " ", " - "), format(abs(obj$coefLinear[i]), digits = 3), "*", part[i])
       }else{
         sent <- paste0(sent, ifelse(obj$coefLinear[i]>0, " + ", " - "), format(abs(obj$coefLinear[i]), digits = 3), "*", part[i])
       }
     }
-
-  }else if(obj$method == "dynamicMeisner"){
-
+    
+  }else if(obj$method == "fixedQuadratic"){
+    
+    sent <- " for the transformation h(X.1,X.2) = ";
+    part <- c("X.1", "X.2", "X.1*X.2", "X.1^2", "X.2^2")
+    for(i in 1:length(obj$coefQuadratic)){
+      if(i == 1){
+        sent <- paste0(sent, ifelse(obj$coefQuadratic[i]>0, " ", " - "), format(abs(obj$coefQuadratic[i]), digits = 3), "*", part[i])
+      }else{
+        sent <- paste0(sent, ifelse(obj$coefQuadratic[i]>0, " + ", " - "), format(abs(obj$coefQuadratic[i]), digits = 3), "*", part[i])
+      }
+    }
+    
+  }else if(obj$method == "dynamicMeisner" | obj$method == "dynamicEmpirical"){
+    
     cat("A linear combination with dynamic parameters has been considered.\n")
-
+    
     coefs <- obj$coefLinear[,index.youden]
     sent <- " for the transformation h(X) = ";
-    if(length(colnames(obj$X))!=ncol(obj$X)) part <- paste0("X.", 1:ncol(obj$X)) else part <- colnames(obj$X)
-    for(i in 1:ncol(obj$X)){
+    if(length(colnames(obj$X))!=p) part <- paste0("X.", 1:p) else part <- colnames(obj$X)
+    for(i in 1:p){
       if(i == 1){
         sent <- paste0(sent, ifelse(coefs[i]>0, " ", " - "), format(abs(coefs[i]), digits = 3), "*", part[i])
       }else{
         sent <- paste0(sent, ifelse(coefs[i]>0, " + ", " - "), format(abs(coefs[i]), digits = 3), "*", part[i])
       }
     }
-
+    
   }else{ # obj$method == "kernelOptimal"
     
     cat("Optimal transformation based on bivariate kernel density estimation has been considered.\n")
@@ -243,5 +163,5 @@ print.multiroc <- function(x, ...){
   cat("The specificity and sensitivity reported by the Youden index are ", format(1-obj$t[index.youden], digits = 3, nsmall = 2), " and ", format(obj$roc[index.youden], digits = 3, nsmall = 2), ", respectively, corresponding to the cut-off point ", format(obj$c[index.youden], digits=3), sent, ".\n", sep="")
   
   cat("The area under the ROC curve (AUC) is ", format(obj$auc, digits = 3, nsmall = 3),".\n", sep="")
-
+  
 }

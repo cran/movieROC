@@ -2,14 +2,13 @@
 \alias{plot}
 \alias{plot.groc}
 \alias{plot.hroc}
-\alias{plot.biroc}
 \alias{plot.multiroc}
 
 \title{
   Plot an ROC curve
 }
 \description{
-This is one of the core functions of the movieROC package. It displays the empirical ROC curve estimate from an object of class \sQuote{groc}, \sQuote{hroc}, \sQuote{biroc} , or \sQuote{multiroc}.
+This is one of the core functions of the movieROC package. It displays the empirical ROC curve estimate from an object of class \sQuote{groc}, \sQuote{hroc}, or \sQuote{multiroc}.
 }
 \usage{
 \S3method{plot}{groc}(x, xlim = c(0, 1), ylim = c(0, 1), lwd = 3, 
@@ -18,13 +17,12 @@ This is one of the core functions of the movieROC package. It displays the empir
 \S3method{plot}{hroc}(x, type = 'S', xlim = c(0,1), ylim = c(0,1), 
   lwd = 3, xlab = "False-Positive Rate", ylab = "True-Positive Rate", 
   main = "ROC Curve", cex.lab = 1.25, cex.main = 1.5, new = TRUE, ...)
-\S3method{plot}{biroc}(x, ...)
 \S3method{plot}{multiroc}(x, ...)
 }
 
 \arguments{
   \item{x}{
-  An ROC curve object from movieROC package. Possible classes are: \sQuote{groc} (output of \code{gROC} function), \sQuote{hroc} (output of \code{hROC} function), \sQuote{biroc} (output of \code{biROC} function), and \sQuote{multiroc} (output of \code{multiROC} function).}
+  An ROC curve object from movieROC package. Possible classes are: \sQuote{groc} (output of \code{\link{gROC}()} function), \sQuote{hroc} (output of \code{\link{hROC}()} function), and \sQuote{multiroc} (output of \code{\link{multiROC}()} function).}
   \item{xlim, ylim}{
   Range for x- and y-axis. Default: unit interval.}
   \item{lwd}{
@@ -60,7 +58,7 @@ legend("topleft", legend = c("Right-sided", "Left-sided", "Transformed marker"),
 
 # ROC curve estimate for genes 20202438 and 18384097 to simultaneously identify tumor
 # by a logistic regression model with quadratic formula
-biroc <- biROC(X = cbind(HCC$cg20202438, HCC$cg18384097), D = HCC$tumor)
+biroc <- multiROC(X = cbind(HCC$cg20202438, HCC$cg18384097), D = HCC$tumor)
 plot(biroc)
 legend("bottomright", paste("AUC = ", format(biroc$auc, digits = 3)))
 

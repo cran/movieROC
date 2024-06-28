@@ -135,7 +135,7 @@
   comb.table <- utils::combn(init.var, 2)
   AUCs.pepethompson <- sapply(1:ncol(comb.table), function(col){
     output <- .nonpar.combine2.coef(X[D==0,comb.table[,col]], X[D==1,comb.table[,col]])
-    biroc.pepethompson <- biROC(X[,comb.table[,col]], D, method = "fixedLinear", coefLinear = output[1:2])
+    biroc.pepethompson <- multiROC(X[,comb.table[,col]], D, method = "fixedLinear", coefLinear = output[1:2])
     c(output[1:2], biroc.pepethompson$auc)})
   final.var <- c(final.var, comb.table[,which.max(AUCs.pepethompson[3,])])
   final.beta <- cbind(final.beta, AUCs.pepethompson[1:2,which.max(AUCs.pepethompson[3,])])
@@ -145,7 +145,7 @@
     X.temp <- matrix(X[,temp.var], ncol = length(temp.var))
     AUCs.pepethompson <- sapply(1:length(temp.var), function(col){
       output <- .nonpar.combine2.coef(cbind(S[D==0,], X.temp[D==0,col]), cbind(S[D==1,], X.temp[D==1,col]))
-      biroc.pepethompson <- biROC(cbind(S, X.temp[,col]), D, method = "fixedLinear", coefLinear = output[1:2])
+      biroc.pepethompson <- multiROC(cbind(S, X.temp[,col]), D, method = "fixedLinear", coefLinear = output[1:2])
       c(output[1:2], biroc.pepethompson$auc)})
     final.var <- c(final.var, temp.var[which.max(AUCs.pepethompson[3,])])
     final.beta <- c(AUCs.pepethompson[1,which.max(AUCs.pepethompson[3,])] * final.beta, AUCs.pepethompson[2,which.max(AUCs.pepethompson[3,])])

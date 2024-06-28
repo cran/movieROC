@@ -5,7 +5,7 @@
   Create a video with the building procedure of the smooth ROC curve estimate
 }
 \description{
-This function tracks the construction of the standard ROC curve (right- or left-sided, depending on the \code{side} of the object of class \sQuote{groc} included) resulting from the kernel density function estimation for controls and cases. Four graphics are displayed: top-left, the kernel density estimates; top-right, the resulting ROC curve; bottom-left, boxplots and points for controls and cases and classification subset in gray color; bottom-right, classification subsets for every FPR until the current one. It makes use of the \code{\link{plot_densityROC}} function for each screenshot.
+This function tracks the construction of the standard ROC curve (right- or left-sided, depending on the \code{side} of the object of class \sQuote{groc} included) resulting from the kernel density function estimation for controls and cases. Four graphics are displayed: top-left, the kernel density estimates; top-right, the resulting ROC curve; bottom-left, boxplots and points for controls and cases and classification subset in gray color; bottom-right, classification subsets for every FPR until the current one. It makes use of the \code{\link{plot_densityROC}()} function for each screenshot.
 }
 \usage{
 movieROC2_densities(obj, h = c(1, 1), cut.off = NULL, completeROC = FALSE,
@@ -18,11 +18,11 @@ movieROC2_densities(obj, h = c(1, 1), cut.off = NULL, completeROC = FALSE,
   \item{obj}{
   An object of class \sQuote{groc} with \code{side = "right"} or \code{"left"}.}
   \item{h}{
-  A vector of length 2 with the bandwidth used to compute kernel density estimation for controls and cases, respectively. See \code{adjust} parameter in \code{density} function from \pkg{stats} package. Default: \code{h = c(1,1)}.}
+  A vector of length 2 with the bandwidth used to compute kernel density estimation for controls and cases, respectively. See \code{adjust} parameter in \code{density()} function from \pkg{stats} package. Default: \code{h = c(1,1)}.}
   \item{cut.off}{
   Vector with marker cutoffs for which the graphics are displayed. Default: if number of unique marker values is lower than 150, these are considered; otherwise, a equally-spaced grid of length 102 in the range of the marker is used.}
   \item{save}{
-  If TRUE, video is saved as a GIF by using the \code{saveGIF} function in \CRANpkg{animation} package. Default: TRUE.}
+  If TRUE, video is saved as a GIF by using the \code{saveGIF()} function in \CRANpkg{animation} package. Default: TRUE.}
   \item{completeROC}{
   A logical value indicating if the whole ROC curve should be displayed in light gray or not. Default: FALSE.}
   \item{legends}{
@@ -47,13 +47,15 @@ movieROC2_densities(obj, h = c(1, 1), cut.off = NULL, completeROC = FALSE,
 \value{
 A video with the building procedure of the smooth ROC curve estimate with the selected graphical parameters
 }
+\section{Dependencies}{
+If \code{save = TRUE} (by default), the \code{saveGIF()} function in the \CRANpkg{animation} package is used.
+}
 \examples{
 data(HCC)
 
 # Standard ROC curve for gene 20202438
 roc_cg20202438 <- gROC(X = HCC$cg20202438, D = HCC$tumor)
 \donttest{
-### Do not change the \code{save} parameter to save the video in a GIF
-### with the name "video_cg20202438_smooth":
+### The video will be saved as a GIF with the name "video_cg20202438_smooth"
 movieROC2_densities(roc_cg20202438, file = "video_cg20202438_smooth.gif", save = FALSE)}
 }

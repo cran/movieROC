@@ -20,7 +20,7 @@ plot_densities(obj, h = c(1, 1), histogram = FALSE, breaks = 15,
   \item{obj}{
   An object of class \sQuote{groc}.}
   \item{h}{
-  A vector of length 2 with the bandwidth used to compute kernel density estimation for controls and cases, respectively. See \code{adjust} parameter in \code{density} function from \pkg{stats} package. Default: \code{h = c(1,1)}.}
+  A vector of length 2 with the bandwidth used to compute kernel density estimation for controls and cases, respectively. See \code{adjust} parameter in \code{density()} function from \pkg{stats} package. Default: \code{h = c(1,1)}.}
   \item{histogram}{
   If TRUE, histograms are displayed instead of kernel density estimates. Default: FALSE.}
   \item{breaks}{
