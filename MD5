@@ -1,4 +1,4 @@
-fa6912c4140367797fde20d20b0178e5 *DESCRIPTION
+df36d2434220917109d33b1616034ed3 *DESCRIPTION
 a46fa78a25bb7261586d370b5eb92a43 *NAMESPACE
 a8a6cacd40c9364ed0a9d6b1c6945d41 *R/KangFunctions.R
 e6ab7e41d9d404ec2d5d39e759c0f065 *R/gROC.R
@@ -19,7 +19,7 @@ eb24c88cf44abc67ac961a59fd0e8ab4 *R/predict.R
 ea124a494ad7922985532ad3b308e4d5 *build/partial.rdb
 df8158dbdc9b4a6776b21f6354365707 *build/vignette.rds
 293ca61e98cdf1bd7562dbd42f2a25ae *data/HCC.rda
-f436401dbc2c6dbca9e5737bd76448bf *inst/doc/movieROC_vignette.pdf
+6ef3d9b8390090119b560e97bb84e064 *inst/doc/movieROC_vignette.pdf
 edf4144bae497ecac12981c9e93b09a6 *inst/doc/movieROC_vignette.pdf.asis
 5744fbaa946d819cc5e4e5fa5be24129 *man/HCC.Rd
 fb0b4144c7b3070e4714a6413c5cd096 *man/gROC.Rd
